@@ -15,6 +15,7 @@ P_BUMPSENSITIVITY,
 P_FWRETRACT,
 P_FWRECOVER,
 P_LIN_ADV,
+P_ABL_STATE,
 // Keep below items always at the end
 P_RESET_SETTINGS,
 P_RESTORE_SETTINGS,
@@ -53,11 +54,12 @@ float BumpSensitivity[3];
 float FwRetract[4];
 float FwRecover[4];
 float LinAdvance[1];
+float ABLState[2];
 }PARAMETERS;
 
 extern PARAMETERS infoParameters;
 
-char *const axisDisplayID[STEPPER_COUNT];
+extern char *const axisDisplayID[STEPPER_COUNT];
 extern const LABEL accel_disp_ID[];
 extern const LABEL retract_disp_ID[];
 extern const LABEL recover_disp_ID[];
