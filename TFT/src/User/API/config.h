@@ -27,18 +27,21 @@
 #define CONFIG_INVERT_AXIS          "invert_axis:"
 #define CONFIG_PERSISTENT_TEMP      "persistent_info:"
 #define CONFIG_LIST_MODE            "files_list_mode:"
-//-----------------------------Marlin Mode Settings (Only for TFT35_V3.0/TFT24_V1.1/TFT28V3.0)
+#define CONFIG_ACK_POPUP_TYPE       "ack_popup_type:"
+#define CONFIG_ACK_BUZZER           "ack_buzzer:"
+//-----------------------------Marlin Mode Settings
 #define CONFIG_MODE                 "default_mode:"
 #define CONFIG_SERIAL_ON            "serial_always_on:"
 #define CONFIG_MARLIN_BG_COLOR      "marlin_bg_color:"
 #define CONFIG_MARLIN_FONT_COLOR    "marlin_fn_color:"
 #define CONFIG_MARLIN_SHOW_TITLE    "marlin_show_title:"
+#define CONFIG_MARLIN_TYPE          "marlin_type:"
 #define CONFIG_MARLIN_TITLE         "marlin_title:"
 #define CONFIG_MARLIN_FULLSCREEN    "marlin_fullscreen:"
 //-----------------------------Printer / Machine Settings
 #define CONFIG_HOTEND_COUNT         "hotend_count:"
-#define CONFIG_BED_EN               "bed_en:"
-#define CONFIG_CHAMBER_EN           "chamber_en:"
+#define CONFIG_HEATED_BED           "heated_bed:"
+#define CONFIG_HEATED_CHAMBER       "heated_chamber:"
 #define CONFIG_EXT_COUNT            "ext_count:"
 #define CONFIG_FAN_COUNT            "fan_count:"
 #define CONFIG_MAX_TEMP             "max_temp:"
@@ -87,6 +90,7 @@
 //-----------------------------other device specific settings
 #define CONFIG_BUZZER_ON               "buzzer:"
 #define CONFIG_KNOB_COLOR              "knob_led_color:"
+#define CONFIG_KNOB_LED_IDLE           "knob_led_idle:"
 #define CONFIG_BRIGHTNESS              "lcd_brightness:"
 #define CONFIG_BRIGHTNESS_IDLE         "lcd_idle_brightness:"
 #define CONFIG_BRIGHTNESS_IDLE_DELAY   "lcd_idle_delay:"
