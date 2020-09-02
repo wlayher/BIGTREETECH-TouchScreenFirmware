@@ -64,7 +64,7 @@ bool request_M21(void)
   "SD card ",          // The magic to identify the start
   "ok",                // The magic to identify the stop
   "No SD card",        // The first magic to identify the error response
-  "SD card failed",    // The second error magic
+  "SD init fail",      // The second error magic
   "volume.init failed" // The third error magic
   );
   mustStoreCmd("M21\n");
@@ -166,7 +166,10 @@ long request_M23(char *filename)
   {
     loopProcess();
   }
-  if (requestCommandInfo.inError) return 0;
+  if (requestCommandInfo.inError) {
+    clearRequestCommandInfo();
+    return 0;
+  }
   // Find file size and report its.
   char *ptr;
   long size = strtol(strstr(requestCommandInfo.cmd_rev_buf,"Size:")+5, &ptr, 10);
