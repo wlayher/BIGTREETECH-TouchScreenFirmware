@@ -59,11 +59,12 @@ void clearRequestCommandInfo(void)
 */
 bool request_M21(void)
 {
-  const char * sdString = (infoMachineSettings.firmwareType == FW_REPRAPFW) ? "SDHC card " : "SD card ";
+  const char * sdString = (infoMachineSettings.firmwareType == FW_REPRAPFW) ? "card mounted " : "SD card ";
+  const char * errString1 = (infoMachineSettings.firmwareType == FW_REPRAPFW) ? "Error" : "No SD card";
 
   resetRequestCommandInfo(sdString,               // The magic to identify the start
                           "ok",                   // The magic to identify the stop
-                          "No SD card",           // The first magic to identify the error response
+                          errString1,             // The first magic to identify the error response
                           "SD init fail",         // The second error magic
                           "volume.init failed");  // The third error magic
 
@@ -109,7 +110,10 @@ char *request_M33(char *filename)
                           NULL,                  // The second error magic
                           NULL);                 // The third error magic
 
-  mustStoreCmd("M33 %s\n", filename);
+  if (filename[0] != '/')
+    mustStoreCmd("M33 /%s\n", filename); // append '/' to short file path
+  else
+    mustStoreCmd("M33 %s\n", filename);
 
   // Wait for response
   while (!requestCommandInfo.done)
@@ -158,7 +162,7 @@ long request_M23_M36(char *filename)
 
     mustStoreCmd("M36 %s\n", filename);
     offset = 6;
-    sizeTag = "size\":";  // reprap firmware reports size JSON 
+    sizeTag = "size\":";  // reprap firmware reports size JSON
   }
 
   // Wait for response
@@ -233,5 +237,84 @@ bool request_M125(void)
 bool request_M0(void)
 {
   mustStoreCmd("M0 \n");
+  return true;
+}
+
+void send_and_wait_M20(const char* command)
+{
+  uint32_t timeout = ((uint32_t)0x000FFFFF);
+  uint32_t waitloops = ((uint32_t)0x00000006);
+
+  resetRequestCommandInfo("{", "}", "Error:", NULL, NULL);
+  mustStoreCmd(command);
+  while ((strstr(requestCommandInfo.cmd_rev_buf, "dir") == NULL) && (waitloops > 0x00)) //(!find_part("dir"))
+  {
+    waitloops--;
+    timeout = ((uint32_t)0x0000FFFF);
+    while ((!requestCommandInfo.done) && (timeout > 0x00))
+    {
+      loopBackEnd();
+            timeout--;
+    }
+    if (timeout <= 0x00)
+    {
+      uint16_t wIndex = (dmaL1Data[SERIAL_PORT].wIndex == 0) ? ACK_MAX_SIZE : dmaL1Data[SERIAL_PORT].wIndex;
+      if (dmaL1Data[SERIAL_PORT].cache[wIndex - 1] == '}') // \n fehlt
+      {
+        BUZZER_PLAY(sound_notify); // for DEBUG
+        dmaL1Data[SERIAL_PORT].cache[wIndex] = '\n';
+        dmaL1Data[SERIAL_PORT].cache[wIndex + 1] = 0;
+        dmaL1Data[SERIAL_PORT].wIndex++;
+        infoHost.rx_ok[SERIAL_PORT] = true;
+      }
+    }
+    if (dmaL1NotEmpty(SERIAL_PORT) && !infoHost.rx_ok[SERIAL_PORT])
+    {
+      infoHost.rx_ok[SERIAL_PORT] = true;
+    }
+    if (strstr(requestCommandInfo.cmd_rev_buf, "dir") == NULL)
+    {
+      clearRequestCommandInfo();
+      resetRequestCommandInfo("{", "}", "Error:", NULL, NULL);
+      mustStoreCmd("\n");
+    }
+  }
+  return; //  requestCommandInfo.cmd_rev_buf;
+}
+
+char *request_M20_macros(char *nextdir)
+{
+  // set pause Flag
+  //infoHost.pauseGantry = true;
+  // waitPortReady();
+  clearRequestCommandInfo();
+  char command[256];
+  if ((nextdir == NULL) || strchr(nextdir, '/') == NULL)
+  {
+    strncpy(command, "M20 S2 P\"/macros\"\n", 256);
+  }
+  else
+  {
+    snprintf(command, 256, "M20 S2 P\"/macros/\"%s\n\n", nextdir);
+  }
+  // Send GCode and wait for responce
+  send_and_wait_M20(command);
+  // reset pause Flag
+  //infoHost.pauseGantry = false;
+  GUI_Clear(BACKGROUND_COLOR);
+  return requestCommandInfo.cmd_rev_buf;
+}
+
+bool request_M98(char *filename)
+{
+  char command[256];
+  snprintf(command, 256, "M98 P/macros/%s\n", filename);
+  resetRequestCommandInfo("", "ok", "Warning:", "Warning:", "Warning:");
+  mustStoreCmd(command);
+  // Wait for response
+  while (!requestCommandInfo.done)
+  {
+    loopProcess();
+  }
   return true;
 }
